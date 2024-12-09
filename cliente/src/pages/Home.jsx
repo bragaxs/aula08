@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 
 export default function Home() {
-
   const [usuarios, setUsuarios] = useState([]);
 
   useEffect(() => {
@@ -13,34 +14,57 @@ export default function Home() {
       } catch {
         alert('Ocorreu um erro no app!');
       }
-    }
+    };
     buscarUsuario();
-  }, [usuarios])
+  }, []);
 
-  const removerpessoa = async(id) => {
+  const removerpessoa = async (id) => {
     try {
-      await fetch('http://localhost:3000/usuarios/' +id, {
-        method: 'DELETE'
-
-      })
-    } catch{
-      alert('Falha')
+      await fetch('http://localhost:3000/usuarios/' + id, {
+        method: 'DELETE',
+      });
+    } catch {
+      alert('Falha');
     }
-  }
+  };
+
+  const exportarPDF = () => {
+    const doc = new jsPDF();
+    const tabela = usuarios.map(usuario => [
+      usuario.nome,
+      usuario.email
+    ]);
+    doc.text("Lista de Usuarios,", 10, 10);
+    doc.autoTable({
+      head: [["Nome", "E-mail"]],
+      body: tabela
+    });
+    doc.save("alunos.pdf");
+  };
 
   return (
-    <table>
-      <tr>
-        <td>Nome</td>
-        <td>E-mail</td>
-      </tr>
-      {usuarios.map((usuario) =>
-        <tr key={usuario.id}>
-          <td>{usuario.nome}</td>
-          <td>{usuario.email}</td>
-          <td><button onClick={() => removerpessoa(usuario.id)}>X</button></td>
-        </tr>
-      )}
-    </table>
+    <div>
+      <button onClick={() => exportarPDF()}>Gerar PDF</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {usuarios.map((usuario) => (
+            <tr key={usuario.id}>
+              <td>{usuario.nome}</td>
+              <td>{usuario.email}</td>
+              <td>
+                <button onClick={() => removerpessoa(usuario.id)}>X</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
